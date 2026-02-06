@@ -4,20 +4,319 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Invoice Numbers — Gold Objects, Inc.</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Raleway:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   <style>
+    *, *::before, *::after {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
     body {
       font-family: 'Raleway', 'Avenir', 'Helvetica Neue', sans-serif;
-      display: flex;
-      align-items: center;
-      justify-content: center;
+      background: #f5f5f7;
+      color: #1d1d1f;
       min-height: 100vh;
-      margin: 0;
-      color: #222;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 3rem 1.5rem;
     }
-    h1 { font-size: 2rem; }
+
+    h1 {
+      font-size: 1.4rem;
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: #1d1d1f;
+      margin-bottom: 2.5rem;
+    }
+
+    .number-display {
+      background: #fff;
+      border-radius: 16px;
+      padding: 2.5rem 3rem;
+      box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
+      text-align: center;
+      margin-bottom: 1.5rem;
+      width: 100%;
+      max-width: 400px;
+    }
+
+    .number {
+      font-size: 2.8rem;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      color: #1d1d1f;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .buttons {
+      display: flex;
+      gap: 0.75rem;
+      margin-bottom: 2.5rem;
+      width: 100%;
+      max-width: 400px;
+    }
+
+    button {
+      flex: 1;
+      padding: 0.85rem 1.5rem;
+      border: none;
+      border-radius: 10px;
+      font-family: inherit;
+      font-size: 0.85rem;
+      font-weight: 600;
+      letter-spacing: 0.04em;
+      cursor: pointer;
+      transition: all 0.2s;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    .btn-generate {
+      background: #1d1d1f;
+      color: #fff;
+    }
+
+    .btn-generate:hover {
+      background: #333;
+    }
+
+    .btn-generate:active {
+      transform: scale(0.97);
+    }
+
+    .btn-export {
+      background: #e8e8ed;
+      color: #1d1d1f;
+    }
+
+    .btn-export:hover {
+      background: #d2d2d7;
+    }
+
+    .btn-export:active {
+      transform: scale(0.97);
+    }
+
+    .history-section {
+      width: 100%;
+      max-width: 400px;
+    }
+
+    .history-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      margin-bottom: 0.75rem;
+    }
+
+    .history-header h2 {
+      font-size: 0.8rem;
+      font-weight: 600;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: #86868b;
+    }
+
+    .history-date {
+      font-size: 0.75rem;
+      font-weight: 400;
+      color: #86868b;
+    }
+
+    .history-list {
+      background: #fff;
+      border-radius: 12px;
+      box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
+      overflow: hidden;
+    }
+
+    .history-empty {
+      padding: 2rem;
+      text-align: center;
+      font-size: 0.9rem;
+      color: #86868b;
+    }
+
+    .history-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0.85rem 1.25rem;
+      border-bottom: 1px solid #f0f0f2;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .history-item:last-child {
+      border-bottom: none;
+    }
+
+    .history-number {
+      font-size: 1.05rem;
+      font-weight: 500;
+      letter-spacing: 0.06em;
+      color: #1d1d1f;
+    }
+
+    .history-time {
+      font-size: 0.75rem;
+      color: #86868b;
+    }
+
+    @media (max-width: 480px) {
+      body {
+        padding: 2rem 1rem;
+      }
+
+      h1 {
+        font-size: 1.15rem;
+        margin-bottom: 2rem;
+      }
+
+      .number-display {
+        padding: 2rem 1.5rem;
+        border-radius: 14px;
+      }
+
+      .number {
+        font-size: 2.2rem;
+      }
+
+      button {
+        padding: 0.9rem 1rem;
+      }
+
+      .history-item {
+        padding: 0.75rem 1rem;
+      }
+    }
   </style>
 </head>
 <body>
-  <h1>hello world</h1>
+
+  <h1>Invoice Numbers</h1>
+
+  <div class="number-display">
+    <div class="number" id="currentNumber">----&nbsp;&nbsp;----&nbsp;&nbsp;----</div>
+  </div>
+
+  <div class="buttons">
+    <button class="btn-generate" id="generateBtn">Generate</button>
+    <button class="btn-export" id="exportBtn">Export</button>
+  </div>
+
+  <div class="history-section">
+    <div class="history-header">
+      <h2>History</h2>
+      <span class="history-date" id="historyDate"></span>
+    </div>
+    <div class="history-list" id="historyList">
+      <div class="history-empty">No numbers generated yet</div>
+    </div>
+  </div>
+
+  <script>
+    function getTodayKey() {
+      var d = new Date();
+      return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+    }
+
+    function formatDate() {
+      return new Date().toLocaleDateString('en-US', {
+        weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'
+      });
+    }
+
+    function randomDigitNoZero() {
+      return Math.floor(Math.random() * 9) + 1;
+    }
+
+    function generateNumber() {
+      var digits = '';
+      for (var i = 0; i < 12; i++) {
+        digits += randomDigitNoZero();
+      }
+      return digits.slice(0, 4) + '  ' + digits.slice(4, 8) + '  ' + digits.slice(8, 12);
+    }
+
+    function loadHistory() {
+      var key = getTodayKey();
+      var data = localStorage.getItem('invoiceHistory_' + key);
+      return data ? JSON.parse(data) : [];
+    }
+
+    function saveHistory(history) {
+      var key = getTodayKey();
+      localStorage.setItem('invoiceHistory_' + key, JSON.stringify(history));
+    }
+
+    function formatTime(iso) {
+      return new Date(iso).toLocaleTimeString('en-US', {
+        hour: 'numeric', minute: '2-digit', second: '2-digit'
+      });
+    }
+
+    function renderHistory(history) {
+      var list = document.getElementById('historyList');
+      if (history.length === 0) {
+        list.innerHTML = '<div class="history-empty">No numbers generated yet</div>';
+        return;
+      }
+      var html = '';
+      for (var i = history.length - 1; i >= 0; i--) {
+        html += '<div class="history-item">'
+          + '<span class="history-number">' + history[i].number + '</span>'
+          + '<span class="history-time">' + formatTime(history[i].time) + '</span>'
+          + '</div>';
+      }
+      list.innerHTML = html;
+    }
+
+    function exportHistory() {
+      var history = loadHistory();
+      if (history.length === 0) {
+        return;
+      }
+      var lines = ['Invoice Numbers — ' + formatDate(), ''];
+      for (var i = 0; i < history.length; i++) {
+        lines.push(history[i].number + '    ' + formatTime(history[i].time));
+      }
+      lines.push('', 'Total: ' + history.length + ' numbers');
+      var text = lines.join('\n');
+      var blob = new Blob([text], { type: 'text/plain' });
+      var url = URL.createObjectURL(blob);
+      var a = document.createElement('a');
+      a.href = url;
+      a.download = 'invoice-numbers-' + getTodayKey() + '.txt';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    }
+
+    // Initialize
+    document.getElementById('historyDate').textContent = formatDate();
+    var history = loadHistory();
+    renderHistory(history);
+
+    if (history.length > 0) {
+      document.getElementById('currentNumber').textContent = history[history.length - 1].number;
+    }
+
+    document.getElementById('generateBtn').addEventListener('click', function() {
+      var num = generateNumber();
+      document.getElementById('currentNumber').textContent = num;
+      var history = loadHistory();
+      history.push({ number: num, time: new Date().toISOString() });
+      saveHistory(history);
+      renderHistory(history);
+    });
+
+    document.getElementById('exportBtn').addEventListener('click', exportHistory);
+  </script>
+
 </body>
 </html>
