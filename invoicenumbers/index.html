@@ -299,20 +299,20 @@
 
     // Initialize
     document.getElementById('historyDate').textContent = formatDate();
-    var history = loadHistory();
-    renderHistory(history);
+    var entries = loadHistory();
+    renderHistory(entries);
 
-    if (history.length > 0) {
-      document.getElementById('currentNumber').textContent = history[history.length - 1].number;
+    if (entries.length > 0) {
+      document.getElementById('currentNumber').textContent = entries[entries.length - 1].number;
     }
 
     document.getElementById('generateBtn').addEventListener('click', function() {
       var num = generateNumber();
       document.getElementById('currentNumber').textContent = num;
-      var history = loadHistory();
-      history.push({ number: num, time: new Date().toISOString() });
-      saveHistory(history);
-      renderHistory(history);
+      var entries = loadHistory();
+      entries.push({ number: num, time: new Date().toISOString() });
+      saveHistory(entries);
+      renderHistory(entries);
     });
 
     document.getElementById('exportBtn').addEventListener('click', exportHistory);
