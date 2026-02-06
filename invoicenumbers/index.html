@@ -88,6 +88,19 @@
       transform: scale(0.97);
     }
 
+    .btn-copy {
+      background: #e8e8ed;
+      color: #1d1d1f;
+    }
+
+    .btn-copy:hover {
+      background: #d2d2d7;
+    }
+
+    .btn-copy:active {
+      transform: scale(0.97);
+    }
+
     .btn-export {
       background: #e8e8ed;
       color: #1d1d1f;
@@ -205,6 +218,7 @@
 
   <div class="buttons">
     <button class="btn-generate" id="generateBtn">Generate</button>
+    <button class="btn-copy" id="copyBtn">Copy</button>
     <button class="btn-export" id="exportBtn">Export</button>
   </div>
 
@@ -313,6 +327,16 @@
       entries.push({ number: num, time: new Date().toISOString() });
       saveHistory(entries);
       renderHistory(entries);
+    });
+
+    document.getElementById('copyBtn').addEventListener('click', function() {
+      var text = document.getElementById('currentNumber').textContent.trim();
+      if (text.indexOf('--') !== -1) return;
+      navigator.clipboard.writeText(text).then(function() {
+        var btn = document.getElementById('copyBtn');
+        btn.textContent = 'Copied';
+        setTimeout(function() { btn.textContent = 'Copy'; }, 1500);
+      });
     });
 
     document.getElementById('exportBtn').addEventListener('click', exportHistory);
