@@ -6,7 +6,7 @@
   <title>Invoice Numbers — Gold Objects, Inc.</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Raleway:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Raleway:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   <style>
     *, *::before, *::after {
       margin: 0;
@@ -46,11 +46,12 @@
     }
 
     .number {
-      font-size: 2.8rem;
-      font-weight: 700;
-      letter-spacing: 0.08em;
+      font-family: 'IBM Plex Mono', 'SF Mono', 'Menlo', monospace;
+      font-size: 2.4rem;
+      font-weight: 500;
+      letter-spacing: 0.05em;
       color: #1d1d1f;
-      font-variant-numeric: tabular-nums;
+      white-space: nowrap;
     }
 
     .buttons {
@@ -168,10 +169,12 @@
     }
 
     .history-number {
-      font-size: 1.05rem;
-      font-weight: 500;
-      letter-spacing: 0.06em;
+      font-family: 'IBM Plex Mono', 'SF Mono', 'Menlo', monospace;
+      font-size: 0.95rem;
+      font-weight: 400;
+      letter-spacing: 0.03em;
       color: #1d1d1f;
+      white-space: nowrap;
     }
 
     .history-time {
@@ -195,7 +198,7 @@
       }
 
       .number {
-        font-size: 2.2rem;
+        font-size: 1.8rem;
       }
 
       button {
@@ -213,7 +216,7 @@
   <h1>Invoice Numbers</h1>
 
   <div class="number-display">
-    <div class="number" id="currentNumber">----&nbsp;&nbsp;----&nbsp;&nbsp;----</div>
+    <div class="number" id="currentNumber">----&ensp;----&ensp;----</div>
   </div>
 
   <div class="buttons">
@@ -253,7 +256,11 @@
       for (var i = 0; i < 12; i++) {
         digits += randomDigitNoZero();
       }
-      return digits.slice(0, 4) + '  ' + digits.slice(4, 8) + '  ' + digits.slice(8, 12);
+      return digits;
+    }
+
+    function formatForDisplay(digits) {
+      return digits.slice(0, 4) + '\u2002' + digits.slice(4, 8) + '\u2002' + digits.slice(8, 12);
     }
 
     function loadHistory() {
@@ -282,7 +289,7 @@
       var html = '';
       for (var i = history.length - 1; i >= 0; i--) {
         html += '<div class="history-item">'
-          + '<span class="history-number">' + history[i].number + '</span>'
+          + '<span class="history-number">' + formatForDisplay(history[i].number) + '</span>'
           + '<span class="history-time">' + formatTime(history[i].time) + '</span>'
           + '</div>';
       }
@@ -296,7 +303,7 @@
       }
       var lines = ['Invoice Numbers — ' + formatDate(), ''];
       for (var i = 0; i < history.length; i++) {
-        lines.push(history[i].number + '    ' + formatTime(history[i].time));
+        lines.push(history[i].number + '  ' + formatTime(history[i].time));
       }
       lines.push('', 'Total: ' + history.length + ' numbers');
       var text = lines.join('\n');
@@ -317,12 +324,12 @@
     renderHistory(entries);
 
     if (entries.length > 0) {
-      document.getElementById('currentNumber').textContent = entries[entries.length - 1].number;
+      document.getElementById('currentNumber').textContent = formatForDisplay(entries[entries.length - 1].number);
     }
 
     document.getElementById('generateBtn').addEventListener('click', function() {
       var num = generateNumber();
-      document.getElementById('currentNumber').textContent = num;
+      document.getElementById('currentNumber').textContent = formatForDisplay(num);
       var entries = loadHistory();
       entries.push({ number: num, time: new Date().toISOString() });
       saveHistory(entries);
@@ -330,7 +337,7 @@
     });
 
     document.getElementById('copyBtn').addEventListener('click', function() {
-      var text = document.getElementById('currentNumber').textContent.trim();
+      var text = document.getElementById('currentNumber').textContent.replace(/\s/g, '');
       if (text.indexOf('--') !== -1) return;
       navigator.clipboard.writeText(text).then(function() {
         var btn = document.getElementById('copyBtn');
