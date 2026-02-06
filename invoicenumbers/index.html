@@ -6,7 +6,7 @@
   <title>Invoice Numbers — Gold Objects, Inc.</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Raleway:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Raleway:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   <style>
     *, *::before, *::after {
       margin: 0;
@@ -22,7 +22,7 @@
       display: flex;
       flex-direction: column;
       align-items: center;
-      padding: 3rem 1.5rem;
+      padding: 3rem 1rem;
     }
 
     h1 {
@@ -37,7 +37,7 @@
     .number-display {
       background: #fff;
       border-radius: 16px;
-      padding: 2.5rem 3rem;
+      padding: 2rem 2rem;
       box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
       text-align: center;
       margin-bottom: 1.5rem;
@@ -46,12 +46,18 @@
     }
 
     .number {
-      font-family: 'IBM Plex Mono', 'SF Mono', 'Menlo', monospace;
+      display: flex;
+      justify-content: center;
+      gap: 0.5em;
+    }
+
+    .digit-group {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
       font-size: 2.4rem;
-      font-weight: 500;
-      letter-spacing: 0.05em;
+      font-weight: 600;
       color: #1d1d1f;
-      white-space: nowrap;
+      font-variant-numeric: tabular-nums;
+      letter-spacing: 0.04em;
     }
 
     .buttons {
@@ -89,29 +95,16 @@
       transform: scale(0.97);
     }
 
-    .btn-copy {
+    .btn-copy, .btn-export {
       background: #e8e8ed;
       color: #1d1d1f;
     }
 
-    .btn-copy:hover {
+    .btn-copy:hover, .btn-export:hover {
       background: #d2d2d7;
     }
 
-    .btn-copy:active {
-      transform: scale(0.97);
-    }
-
-    .btn-export {
-      background: #e8e8ed;
-      color: #1d1d1f;
-    }
-
-    .btn-export:hover {
-      background: #d2d2d7;
-    }
-
-    .btn-export:active {
+    .btn-copy:active, .btn-export:active {
       transform: scale(0.97);
     }
 
@@ -188,7 +181,6 @@
       align-items: center;
       padding: 0.85rem 1.25rem;
       border-bottom: 1px solid #f0f0f2;
-      font-variant-numeric: tabular-nums;
     }
 
     .history-item:last-child {
@@ -196,12 +188,12 @@
     }
 
     .history-number {
-      font-family: 'IBM Plex Mono', 'SF Mono', 'Menlo', monospace;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
       font-size: 0.95rem;
-      font-weight: 400;
-      letter-spacing: 0.03em;
+      font-weight: 500;
+      letter-spacing: 0.04em;
       color: #1d1d1f;
-      white-space: nowrap;
+      font-variant-numeric: tabular-nums;
     }
 
     .history-time {
@@ -211,7 +203,7 @@
 
     @media (max-width: 480px) {
       body {
-        padding: 2rem 1rem;
+        padding: 2rem 0.75rem;
       }
 
       h1 {
@@ -220,11 +212,11 @@
       }
 
       .number-display {
-        padding: 2rem 1.5rem;
+        padding: 1.75rem 1rem;
         border-radius: 14px;
       }
 
-      .number {
+      .digit-group {
         font-size: 1.8rem;
       }
 
@@ -243,7 +235,11 @@
   <h1>Invoice Numbers</h1>
 
   <div class="number-display">
-    <div class="number" id="currentNumber">----&ensp;----&ensp;----</div>
+    <div class="number" id="currentNumber">
+      <span class="digit-group">----</span>
+      <span class="digit-group">----</span>
+      <span class="digit-group">----</span>
+    </div>
   </div>
 
   <div class="buttons">
@@ -289,8 +285,22 @@
       return digits;
     }
 
-    function formatForDisplay(digits) {
-      return digits.slice(0, 4) + '\u2002' + digits.slice(4, 8) + '\u2002' + digits.slice(8, 12);
+    function setDisplayNumber(digits) {
+      var el = document.getElementById('currentNumber');
+      el.innerHTML = '<span class="digit-group">' + digits.slice(0, 4) + '</span>'
+        + '<span class="digit-group">' + digits.slice(4, 8) + '</span>'
+        + '<span class="digit-group">' + digits.slice(8, 12) + '</span>';
+    }
+
+    function setDisplayPlaceholder() {
+      var el = document.getElementById('currentNumber');
+      el.innerHTML = '<span class="digit-group">----</span>'
+        + '<span class="digit-group">----</span>'
+        + '<span class="digit-group">----</span>';
+    }
+
+    function formatForHistory(digits) {
+      return digits.slice(0, 4) + ' ' + digits.slice(4, 8) + ' ' + digits.slice(8, 12);
     }
 
     function loadHistory() {
@@ -299,9 +309,9 @@
       return data ? JSON.parse(data) : [];
     }
 
-    function saveHistory(history) {
+    function saveHistory(data) {
       var key = getTodayKey();
-      localStorage.setItem('invoiceHistory_' + key, JSON.stringify(history));
+      localStorage.setItem('invoiceHistory_' + key, JSON.stringify(data));
     }
 
     function formatTime(iso) {
@@ -310,32 +320,30 @@
       });
     }
 
-    function renderHistory(history) {
+    function renderHistory(data) {
       var list = document.getElementById('historyList');
-      if (history.length === 0) {
+      if (data.length === 0) {
         list.innerHTML = '<div class="history-empty">No numbers generated yet</div>';
         return;
       }
       var html = '';
-      for (var i = history.length - 1; i >= 0; i--) {
+      for (var i = data.length - 1; i >= 0; i--) {
         html += '<div class="history-item">'
-          + '<span class="history-number">' + formatForDisplay(history[i].number) + '</span>'
-          + '<span class="history-time">' + formatTime(history[i].time) + '</span>'
+          + '<span class="history-number">' + formatForHistory(data[i].number) + '</span>'
+          + '<span class="history-time">' + formatTime(data[i].time) + '</span>'
           + '</div>';
       }
       list.innerHTML = html;
     }
 
     function exportHistory() {
-      var history = loadHistory();
-      if (history.length === 0) {
-        return;
-      }
+      var data = loadHistory();
+      if (data.length === 0) return;
       var lines = ['Invoice Numbers — ' + formatDate(), ''];
-      for (var i = 0; i < history.length; i++) {
-        lines.push(history[i].number + '  ' + formatTime(history[i].time));
+      for (var i = 0; i < data.length; i++) {
+        lines.push(data[i].number + '  ' + formatTime(data[i].time));
       }
-      lines.push('', 'Total: ' + history.length + ' numbers');
+      lines.push('', 'Total: ' + data.length + ' numbers');
       var text = lines.join('\n');
       var blob = new Blob([text], { type: 'text/plain' });
       var url = URL.createObjectURL(blob);
@@ -354,12 +362,12 @@
     renderHistory(entries);
 
     if (entries.length > 0) {
-      document.getElementById('currentNumber').textContent = formatForDisplay(entries[entries.length - 1].number);
+      setDisplayNumber(entries[entries.length - 1].number);
     }
 
     document.getElementById('generateBtn').addEventListener('click', function() {
       var num = generateNumber();
-      document.getElementById('currentNumber').textContent = formatForDisplay(num);
+      setDisplayNumber(num);
       var entries = loadHistory();
       entries.push({ number: num, time: new Date().toISOString() });
       saveHistory(entries);
@@ -367,8 +375,10 @@
     });
 
     document.getElementById('copyBtn').addEventListener('click', function() {
-      var text = document.getElementById('currentNumber').textContent.replace(/\s/g, '');
-      if (text.indexOf('--') !== -1) return;
+      var spans = document.getElementById('currentNumber').querySelectorAll('.digit-group');
+      var text = '';
+      for (var i = 0; i < spans.length; i++) text += spans[i].textContent;
+      if (text.indexOf('-') !== -1) return;
       navigator.clipboard.writeText(text).then(function() {
         var btn = document.getElementById('copyBtn');
         btn.textContent = 'Copied';
@@ -377,9 +387,8 @@
     });
 
     document.getElementById('resetBtn').addEventListener('click', function() {
-      var key = getTodayKey();
-      localStorage.removeItem('invoiceHistory_' + key);
-      document.getElementById('currentNumber').innerHTML = '----\u2002----\u2002----';
+      localStorage.removeItem('invoiceHistory_' + getTodayKey());
+      setDisplayPlaceholder();
       renderHistory([]);
     });
 
